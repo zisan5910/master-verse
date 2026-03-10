@@ -4,7 +4,9 @@ import { toast } from "sonner";
 interface ExamSecurityOptions {
   enabled: boolean;
   onSuspiciousActivity: () => void;
+  onFullscreenExit: () => void;
   maxTabSwitches?: number;
+  isUploadingWritten?: boolean;
 }
 
 interface SecurityLog {
