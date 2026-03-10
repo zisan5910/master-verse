@@ -150,6 +150,10 @@ export default function ExamTakePage() {
       toast.error("Upload failed");
     }
     setUploadingImage(false);
+    // Re-enter fullscreen after upload
+    setTimeout(() => {
+      requestFullscreen();
+    }, 500);
   };
 
   const handleSubmitInternal = useCallback(async () => {
