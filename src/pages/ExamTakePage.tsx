@@ -42,11 +42,23 @@ export default function ExamTakePage() {
     handleSubmitInternal();
   }, []);
 
+  // Auto-submit handler for fullscreen exit
+  const handleFullscreenExitSubmit = useCallback(() => {
+    toast.error("⚠️ Exam auto-submitted! You exited fullscreen mode.");
+    handleSubmitInternal();
+  }, []);
+
+  // Track if current question is written type (for allowing photo upload)
+  const isCurrentQuestionWritten = exam?.questions?.[currentQ]?.type === "written";
+  const isWrittenUploadActive = uploadingImage && isCurrentQuestionWritten;
+
   // Exam security hook
   const { requestFullscreen, exitFullscreen, isFullscreen } = useExamSecurity({
     enabled: started && !submitted,
     onSuspiciousActivity: handleSuspiciousAutoSubmit,
+    onFullscreenExit: handleFullscreenExitSubmit,
     maxTabSwitches: 3,
+    isUploadingWritten: isWrittenUploadActive,
   });
 
   useEffect(() => {
