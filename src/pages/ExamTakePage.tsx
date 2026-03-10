@@ -503,10 +503,10 @@ export default function ExamTakePage() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto animate-fade-in select-none">
-      {/* Fullscreen reminder */}
-      {!isFullscreen && started && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground text-center py-2 text-sm font-medium cursor-pointer" onClick={requestFullscreen}>
-          ⚠️ Click here to return to fullscreen mode
+      {/* Fullscreen reminder - only shown during written upload grace period */}
+      {!isFullscreen && started && isWrittenUploadActive && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground text-center py-2 text-sm font-medium cursor-pointer" onClick={requestFullscreen}>
+          📸 Photo upload mode — Click here to return to fullscreen after upload
         </div>
       )}
 
