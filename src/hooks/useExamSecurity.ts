@@ -124,6 +124,19 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExi
       e.preventDefault();
     };
 
+    // Block Escape key to prevent exiting fullscreen
+    const handleKeydownEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        addLog("escape_blocked");
+        toast.warning("⚠️ Escape key is blocked! Submit the exam to exit.", {
+          duration: 3000,
+        });
+        return false;
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -132,6 +145,7 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExi
     document.addEventListener("cut", handleCopyPaste);
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeydown);
+    document.addEventListener("keydown", handleKeydownEscape, true); // capture phase
     document.addEventListener("selectstart", handleSelect);
 
     // Add CSS to prevent selection
@@ -147,11 +161,12 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExi
       document.removeEventListener("cut", handleCopyPaste);
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("keydown", handleKeydownEscape, true);
       document.removeEventListener("selectstart", handleSelect);
       document.body.style.userSelect = "";
       document.body.style.webkitUserSelect = "";
     };
-  }, [enabled, maxTabSwitches, onSuspiciousActivity, addLog, requestFullscreen]);
+  }, [enabled, maxTabSwitches, onSuspiciousActivity, onFullscreenExit, addLog, requestFullscreen, isUploadingWritten]);
 
   return {
     tabSwitchCount: tabSwitchCount.current,
