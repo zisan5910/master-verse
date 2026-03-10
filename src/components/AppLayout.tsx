@@ -15,15 +15,28 @@ export function AppLayout() {
   const isMobile = useIsMobile();
   const { pathname } = useLocation();
 
+  // Hide all navigation when taking an exam
+  const isExamActive = /^\/exams\/[^/]+$/.test(pathname);
+
   // Desktop user panel: no bottom nav. Admin panel: always bottom nav. Mobile: always bottom nav.
-  const showBottomNav = isMobile || isAdmin;
+  const showBottomNav = (isMobile || isAdmin) && !isExamActive;
 
   // Show desktop sidebar for user on non-video pages
   const isVideoPage = pathname.startsWith("/video/");
-  const showDesktopSidebar = !isMobile && !isAdmin && !isVideoPage;
+  const showDesktopSidebar = !isMobile && !isAdmin && !isVideoPage && !isExamActive;
 
   // Hide hamburger menu on pages that already have a visible sidebar
-  const hasVisibleSidebar = (!isMobile && isAdmin) || showDesktopSidebar;
+  const hasVisibleSidebar = (!isMobile && isAdmin && !isExamActive) || showDesktopSidebar;
+
+  if (isExamActive) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <main className="flex-1 overflow-x-hidden">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
