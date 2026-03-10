@@ -15,7 +15,7 @@ interface SecurityLog {
   detail?: string;
 }
 
-export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches = 3 }: ExamSecurityOptions) {
+export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExit, maxTabSwitches = 3, isUploadingWritten = false }: ExamSecurityOptions) {
   const tabSwitchCount = useRef(0);
   const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
