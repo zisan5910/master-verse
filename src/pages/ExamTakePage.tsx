@@ -408,7 +408,7 @@ export default function ExamTakePage() {
               <div className="bg-accent/50 border border-border rounded-lg p-4 space-y-2.5 text-sm text-foreground">
                 <div className="flex items-start gap-2.5">
                   <Maximize className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>Exam will run in <strong>fullscreen mode</strong>. Exiting fullscreen is not allowed.</span>
+                  <span>Exam will run in <strong>fullscreen mode</strong>. Exiting fullscreen will <strong>auto-submit</strong> your exam. (Exception: written answer photo upload)</span>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
