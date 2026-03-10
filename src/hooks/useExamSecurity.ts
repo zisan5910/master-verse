@@ -4,7 +4,9 @@ import { toast } from "sonner";
 interface ExamSecurityOptions {
   enabled: boolean;
   onSuspiciousActivity: () => void;
+  onFullscreenExit: () => void;
   maxTabSwitches?: number;
+  isUploadingWritten?: boolean;
 }
 
 interface SecurityLog {
@@ -13,7 +15,7 @@ interface SecurityLog {
   detail?: string;
 }
 
-export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches = 3 }: ExamSecurityOptions) {
+export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExit, maxTabSwitches = 3, isUploadingWritten = false }: ExamSecurityOptions) {
   const tabSwitchCount = useRef(0);
   const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -64,15 +66,23 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches 
       }
     };
 
-    // Fullscreen change
+    // Fullscreen change - strict enforcement
     const handleFullscreenChange = () => {
       const isFs = !!document.fullscreenElement;
       setIsFullscreen(isFs);
       if (!isFs && enabled) {
         addLog("fullscreen_exit");
-        toast.warning("⚠️ Please stay in fullscreen mode during the exam!", {
-          action: { label: "Go Fullscreen", onClick: requestFullscreen },
-        });
+        // Allow fullscreen exit only during written question photo upload
+        if (isUploadingWritten) {
+          toast.warning("⚠️ Fullscreen paused for photo upload. It will resume after upload.", {
+            duration: 3000,
+          });
+        } else {
+          toast.error("⚠️ Fullscreen exit detected! Your exam will be auto-submitted.", {
+            duration: 5000,
+          });
+          onFullscreenExit();
+        }
       }
     };
 
@@ -114,6 +124,19 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches 
       e.preventDefault();
     };
 
+    // Block Escape key to prevent exiting fullscreen
+    const handleKeydownEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        addLog("escape_blocked");
+        toast.warning("⚠️ Escape key is blocked! Submit the exam to exit.", {
+          duration: 3000,
+        });
+        return false;
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -122,6 +145,7 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches 
     document.addEventListener("cut", handleCopyPaste);
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeydown);
+    document.addEventListener("keydown", handleKeydownEscape, true); // capture phase
     document.addEventListener("selectstart", handleSelect);
 
     // Add CSS to prevent selection
@@ -137,11 +161,12 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, maxTabSwitches 
       document.removeEventListener("cut", handleCopyPaste);
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("keydown", handleKeydownEscape, true);
       document.removeEventListener("selectstart", handleSelect);
       document.body.style.userSelect = "";
       document.body.style.webkitUserSelect = "";
     };
-  }, [enabled, maxTabSwitches, onSuspiciousActivity, addLog, requestFullscreen]);
+  }, [enabled, maxTabSwitches, onSuspiciousActivity, onFullscreenExit, addLog, requestFullscreen, isUploadingWritten]);
 
   return {
     tabSwitchCount: tabSwitchCount.current,

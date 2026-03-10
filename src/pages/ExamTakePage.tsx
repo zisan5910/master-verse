@@ -42,11 +42,23 @@ export default function ExamTakePage() {
     handleSubmitInternal();
   }, []);
 
+  // Auto-submit handler for fullscreen exit
+  const handleFullscreenExitSubmit = useCallback(() => {
+    toast.error("⚠️ Exam auto-submitted! You exited fullscreen mode.");
+    handleSubmitInternal();
+  }, []);
+
+  // Track if current question is written type (for allowing photo upload)
+  const isCurrentQuestionWritten = exam?.questions?.[currentQ]?.type === "written";
+  const isWrittenUploadActive = uploadingImage && isCurrentQuestionWritten;
+
   // Exam security hook
   const { requestFullscreen, exitFullscreen, isFullscreen } = useExamSecurity({
     enabled: started && !submitted,
     onSuspiciousActivity: handleSuspiciousAutoSubmit,
+    onFullscreenExit: handleFullscreenExitSubmit,
     maxTabSwitches: 3,
+    isUploadingWritten: isWrittenUploadActive,
   });
 
   useEffect(() => {
@@ -138,6 +150,10 @@ export default function ExamTakePage() {
       toast.error("Upload failed");
     }
     setUploadingImage(false);
+    // Re-enter fullscreen after upload
+    setTimeout(() => {
+      requestFullscreen();
+    }, 500);
   };
 
   const handleSubmitInternal = useCallback(async () => {
@@ -392,7 +408,7 @@ export default function ExamTakePage() {
               <div className="bg-accent/50 border border-border rounded-lg p-4 space-y-2.5 text-sm text-foreground">
                 <div className="flex items-start gap-2.5">
                   <Maximize className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>Exam will run in <strong>fullscreen mode</strong>. Exiting fullscreen is not allowed.</span>
+                  <span>Exam will run in <strong>fullscreen mode</strong>. Exiting fullscreen will <strong>auto-submit</strong> your exam. (Exception: written answer photo upload)</span>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
@@ -491,10 +507,10 @@ export default function ExamTakePage() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto animate-fade-in select-none">
-      {/* Fullscreen reminder */}
-      {!isFullscreen && started && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground text-center py-2 text-sm font-medium cursor-pointer" onClick={requestFullscreen}>
-          ⚠️ Click here to return to fullscreen mode
+      {/* Fullscreen reminder - only shown during written upload grace period */}
+      {!isFullscreen && started && isWrittenUploadActive && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground text-center py-2 text-sm font-medium cursor-pointer" onClick={requestFullscreen}>
+          📸 Photo upload mode — Click here to return to fullscreen after upload
         </div>
       )}
 
