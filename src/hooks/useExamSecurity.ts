@@ -66,15 +66,23 @@ export function useExamSecurity({ enabled, onSuspiciousActivity, onFullscreenExi
       }
     };
 
-    // Fullscreen change
+    // Fullscreen change - strict enforcement
     const handleFullscreenChange = () => {
       const isFs = !!document.fullscreenElement;
       setIsFullscreen(isFs);
       if (!isFs && enabled) {
         addLog("fullscreen_exit");
-        toast.warning("⚠️ Please stay in fullscreen mode during the exam!", {
-          action: { label: "Go Fullscreen", onClick: requestFullscreen },
-        });
+        // Allow fullscreen exit only during written question photo upload
+        if (isUploadingWritten) {
+          toast.warning("⚠️ Fullscreen paused for photo upload. It will resume after upload.", {
+            duration: 3000,
+          });
+        } else {
+          toast.error("⚠️ Fullscreen exit detected! Your exam will be auto-submitted.", {
+            duration: 5000,
+          });
+          onFullscreenExit();
+        }
       }
     };
 
